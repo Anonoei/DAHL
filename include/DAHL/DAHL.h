@@ -3,7 +3,7 @@
 //  License : GPLv3
 //  Language: C++
 //  This file serves a cross-platform library for Logging, Asserts, Printing colored text(16-bit color!),
-//    user input, etc!
+//    keyboard/mouse input, etc!
 //  This was made to allow transition to DAGGer more easy for ASCII apps
 //    with a few added bonuses
 //----=============================================================================----//
@@ -16,6 +16,7 @@
 //    #define DAHL_INPUT.......Include cross-platform input library
 //    #define DAHL_PROFILE.....Include function profiling library
 //    #define DAHL_TIME........Include timestep library
+//    #define DAHL_UUID........Include UUID library
 //
 /////////////////////////////
 //  Defines to disable things
@@ -45,6 +46,7 @@
 	#define DAHL_USE_INPUT 1
 	#define DAHL_USE_PROFILE 1
 	#define DAHL_USE_TIME 1
+	#define DAHL_USE_UUID 1
 #else
 	#define DAHL_USE_CLEAR 1		//	Enable cross-platform clear screen
 
@@ -85,6 +87,12 @@
 	#else
 		#define DAHL_USE_TIME 0
 	#endif
+
+	#ifdef DAHL_UUID
+		#define DAHL_USE_UUID 1	//	Enable DAUUID
+	#else
+		#define DAHL_USE_UUID 0
+	#endif
 #endif
 
 ////////////////////////////////////////////////////////////////////
@@ -120,19 +128,21 @@
 ////////////////////////////////////////////////////////////////////
 //  -    User defines - These are the defines you would use    -  //
 ////////////////////////////////////////////////////////////////////
-	//	These are the defines used within functions
+#define dahlInit()           ::DAHL::Internal::daInit();	//	Initalize DAHL Colors
+#define dahlResetColors()    ::DAHL::Internal::daReset();	//	Reset DAHL Colors
+//	These are the defines used within functions
 #define fgBlack              ::DAHL::Internal::Foreground::DACOLOR::daColorBlack			//	(0)  Foreground Black
 #define fgRed                ::DAHL::Internal::Foreground::DACOLOR::daColorRed				//	(1)  Foreground Red
 #define fgGreen              ::DAHL::Internal::Foreground::DACOLOR::daColorGreen			//	(2)  Foreground Green
 #define fgYellow             ::DAHL::Internal::Foreground::DACOLOR::daColorYellow			//	(3)  Foreground Yellow
-#define fgBlue               ::DAHL::Internal::Foreground::DACOLOR::daColorBlue			//	(4)  Foreground Blue
+#define fgBlue               ::DAHL::Internal::Foreground::DACOLOR::daColorBlue				//	(4)  Foreground Blue
 #define fgMagenta            ::DAHL::Internal::Foreground::DACOLOR::daColorMagenta			//	(5)  Foreground Magenta
-#define fgCyan               ::DAHL::Internal::Foreground::DACOLOR::daColorCyan			//	(6)  Foreground Cyan
+#define fgCyan               ::DAHL::Internal::Foreground::DACOLOR::daColorCyan				//	(6)  Foreground Cyan
 #define fgWhite              ::DAHL::Internal::Foreground::DACOLOR::daColorWhite			//	(7)  Foreground White
 #define fgBrightBlack        ::DAHL::Internal::Foreground::DACOLOR::daColorBrightBlack		//	(8)  Foreground Black
 #define fgBrightRed          ::DAHL::Internal::Foreground::DACOLOR::daColorBrightRed		//	(9)  Foreground Bright Red
 #define fgBrightGreen        ::DAHL::Internal::Foreground::DACOLOR::daColorBrightGreen		//	(10) Foreground Bright Green
-#define fgBrightYellow       ::DAHL::Internal::Foreground::DACOLOR::daColorBrightYellow	//	(11) Foreground Bright Yellow
+#define fgBrightYellow       ::DAHL::Internal::Foreground::DACOLOR::daColorBrightYellow		//	(11) Foreground Bright Yellow
 #define fgBrightBlue         ::DAHL::Internal::Foreground::DACOLOR::daColorBrightBlue		//	(12) Foreground Bright Blue
 #define fgBrightMagenta      ::DAHL::Internal::Foreground::DACOLOR::daColorBrightMagenta	//	(13) Foreground Bright Magenta
 #define fgBrightCyan         ::DAHL::Internal::Foreground::DACOLOR::daColorBrightCyan		//	(14) Foreground Bright Cyan
@@ -143,14 +153,14 @@
 #define bgRed                ::DAHL::Internal::Background::DACOLOR::daColorRed				//	(1)  Background Red
 #define bgGreen              ::DAHL::Internal::Background::DACOLOR::daColorGreen			//	(2)  Background Green
 #define bgYellow             ::DAHL::Internal::Background::DACOLOR::daColorYellow			//	(3)  Background Yellow
-#define bgBlue               ::DAHL::Internal::Background::DACOLOR::daColorBlue			//	(4)  Background Blue
+#define bgBlue               ::DAHL::Internal::Background::DACOLOR::daColorBlue				//	(4)  Background Blue
 #define bgMagenta            ::DAHL::Internal::Background::DACOLOR::daColorMagenta			//	(5)  Background Magenta
-#define bgCyan               ::DAHL::Internal::Background::DACOLOR::daColorCyan			//	(6)  Background Cyan
+#define bgCyan               ::DAHL::Internal::Background::DACOLOR::daColorCyan				//	(6)  Background Cyan
 #define bgWhite              ::DAHL::Internal::Background::DACOLOR::daColorWhite			//	(7)  Background White
 #define bgBrightBlack        ::DAHL::Internal::Background::DACOLOR::daColorBrightBlack		//	(8)  Background Bright Black
 #define bgBrightRed          ::DAHL::Internal::Background::DACOLOR::daColorBrightRed		//	(9)  Background Bright Red
 #define bgBrightGreen        ::DAHL::Internal::Background::DACOLOR::daColorBrightGreen		//	(10) Background Bright Green
-#define bgBrightYellow       ::DAHL::Internal::Background::DACOLOR::daColorBrightYellow	//	(11) Background Bright Yellow
+#define bgBrightYellow       ::DAHL::Internal::Background::DACOLOR::daColorBrightYellow		//	(11) Background Bright Yellow
 #define bgBrightBlue         ::DAHL::Internal::Background::DACOLOR::daColorBrightBlue		//	(12) Background Bright Blue
 #define bgBrightMagenta      ::DAHL::Internal::Background::DACOLOR::daColorBrightMagenta	//	(13) Background Bright Magenta
 #define bgBrightCyan         ::DAHL::Internal::Background::DACOLOR::daColorBrightCyan		//	(14) Background Bright Cyan
@@ -182,58 +192,58 @@ constexpr int daBrightCyan    = 14;	//	Bright Cyan
 constexpr int daBrightWhite   = 15;	//	Bright White
 constexpr int daUndefined     = 16;	//	Undefined
 
-#ifdef DAHL_USE_LOG	//  Log defines  //
-	#define daLOG(severity, message)           ::DAHL::Log(severity,        message)	//	Log with log level
-	#define daLOG_CRITICAL(message)            ::DAHL::Log(Level::Critical, message)	//	Log critical message
-	#define daLOG_ERROR(message)               ::DAHL::Log(Level::Error,    message)	//	Log error message
-	#define daLOG_WARN(message)                ::DAHL::Log(Level::Warn,     message)	//	Log warning message
-	#define daLOG_INFO(message)                ::DAHL::Log(Level::Info,     message)	//	Log information
-	#define daLOG_TRACE(message)               ::DAHL::Log(Level::Trace,    message)	//	Basically printing
+#if DAHL_USE_LOG == 1	//  Log defines  //
+	#define dahlLOG(severity, message)           ::DAHL::Log(severity,        message)	//	Log with log level
+	#define dahlLOG_CRITICAL(message)            ::DAHL::Log(Level::Critical, message)	//	Log critical message
+	#define dahlLOG_ERROR(message)               ::DAHL::Log(Level::Error,    message)	//	Log error message
+	#define dahlLOG_WARN(message)                ::DAHL::Log(Level::Warn,     message)	//	Log warning message
+	#define dahlLOG_INFO(message)                ::DAHL::Log(Level::Info,     message)	//	Log information
+	#define dahlLOG_TRACE(message)               ::DAHL::Log(Level::Trace,    message)	//	Basically printing
 #else	//	DALog isn't used - do nothing
-	#define daLOG(severity, message)
-	#define daLOG_CRITICAL(message)
-	#define daLOG_ERROR(message)
-	#define daLOG_WARN(message)
-	#define daLOG_INFO(message)
-	#define daLOG_TRACE(message)
+	#define dahlLOG(severity, message)
+	#define dahlLOG_CRITICAL(message)
+	#define dahlLOG_ERROR(message)
+	#define dahlLOG_WARN(message)
+	#define dahlLOG_INFO(message)
+	#define dahlLOG_TRACE(message)
 #endif
-#ifdef DAHL_USE_ASSERT	//  Assert defines  //
-	#define daAssert(x, ...)               ::DAHL::daASSERT(x, __VA_ARGS__)
+#if DAHL_USE_ASSERT == 1	//  Assert defines  //
+	#define dahlAssert(x, ...)               ::DAHL::daASSERT(x, __VA_ARGS__)
 #else	//	DAAssert isn't used - do nothing
-	#define daAssert(x, ...)
+	#define dahlAssert(x, ...)
 #endif
-#ifdef DAHL_USE_CLEAR		//  Clear defines  //
-	#define daClearScreen()                ::DAHL::ClearScreen()	//	Cross-platform clear screen
+#if DAHL_USE_CLEAR == 1		//  Clear defines  //
+	#define dahlClearScreen()                ::DAHL::ClearScreen()	//	Cross-platform clear screen
 #endif
-#ifdef DAHL_USE_PRINT		//  Print defines  //
-	#define daPrint                        ::DAHL::Print::Print		//	std::cout w/color 
-	#define daPrintl                       ::DAHL::Print::Printl		//	std::cout w/color and std::endl
-	#define daPrintChar                    ::DAHL::Print::PrintChar	//	std::cout w/color only for specified section
-	#define daSetDefaultColor              ::DAHL::Print::SetDefaults	//	Set the default printing color
+#if DAHL_USE_PRINT == 1		//  Print defines  //
+	#define dahlPrint                        ::DAHL::Print::Print			//	std::cout w/color 
+	#define dahlPrintl                       ::DAHL::Print::Printl		//	std::cout w/color and std::endl
+	#define dahlPrintChar                    ::DAHL::Print::PrintChar		//	std::cout w/color only for specified section
+	#define dahlSetDefaultColor              ::DAHL::Print::SetDefaults	//	Set the default printing color
 	#ifdef DAHL_PLATFORM_WINDOWS
-		#define daPrintRBG                 ::DAHL::Print::PrintRGB	//	Prints RBG value (Windows ONLY!)
+		#define dahlPrintRBG                 ::DAHL::Print::PrintRGB		//	Prints RBG value (Windows ONLY!)
 	#endif
 #endif
-#ifdef DAHL_USE_INPUT		//  Input defines  //
-	#define daEvent                 ::DAHL::Input::Event
-	#define daEventDispatcher       ::DAHL::Input::EventDispatcher
+#if DAHL_USE_INPUT == 1		//  Input defines  //
+	#define dahlEvent               ::DAHL::Input::Event
+	#define dahlEventDispatcher     ::DAHL::Input::EventDispatcher
 	//	Key defines
-	#define daKey                 ::DAHL::Input::KeyCode				//	The KeyCode enum class
-	#define daKeyEvent            ::DAHL::Input::KeyEvent				//	A generic KeyEvent (shouldn't be used)
-	#define daKeyPressedEvent     ::DAHL::Input::KeyPressedEvent		//	When a key is pressed down (also contain's repeat count)
-	#define daKeyReleasedEvent    ::DAHL::Input::KeyReleasedEvent		//	When a key is released
-	#define daKeyTypedEvent       ::DAHL::Input::KeyTypedEvent			//	When a key is typed (modifiers applied differently)
+	#define dahlKey                 ::DAHL::Input::KeyCode				//	The KeyCode enum class
+	#define dahlKeyEvent            ::DAHL::Input::KeyEvent				//	A generic KeyEvent (shouldn't be used)
+	#define dahlKeyPressedEvent     ::DAHL::Input::KeyPressedEvent		//	When a key is pressed down (also contain's repeat count)
+	#define dahlKeyReleasedEvent    ::DAHL::Input::KeyReleasedEvent		//	When a key is released
+	#define dahlKeyTypedEvent       ::DAHL::Input::KeyTypedEvent			//	When a key is typed (modifiers applied differently)
 	//	Mouse defines
-	#define daMouseCode                ::DAHL::Input::MouseCode				//	The MouseCode enum class
-	#define daMouseMovedEvent          ::DAHL::Input::MouseMovedEvent			//	When the mouse has moved
-	#define daMouseScrolledEvent       ::DAHL::Input::MouseScrolledEvent		//	When the mouse is scrolled
-	#define daMouseButtonEvent         ::DAHL::Input::MouseButtonEvent			//	A generic MouseButtonEvent (shouldn't be used)
-	#define daMouseButtonPressedEvent  ::DAHL::Input::MouseButtonPressedEvent	//	When a mouse button is pressed
-	#define daMouseButtonReleasedEvent ::DAHL::Input::MouseButtonReleasedEvent	//	When a mouse button is released
+	#define dahlMouseCode                ::DAHL::Input::MouseCode					//	The MouseCode enum class
+	#define dahlMouseMovedEvent          ::DAHL::Input::MouseMovedEvent			//	When the mouse has moved
+	#define dahlMouseScrolledEvent       ::DAHL::Input::MouseScrolledEvent		//	When the mouse is scrolled
+	#define dahlMouseButtonEvent         ::DAHL::Input::MouseButtonEvent			//	A generic MouseButtonEvent (shouldn't be used)
+	#define dahlMouseButtonPressedEvent  ::DAHL::Input::MouseButtonPressedEvent	//	When a mouse button is pressed
+	#define dahlMouseButtonReleasedEvent ::DAHL::Input::MouseButtonReleasedEvent	//	When a mouse button is released
 
 	#define DAHL_BIND_EVENT_FN(fn) [this](auto&&... args) -> decltype(auto) { return this->fn(std::forward<decltype(args)>(args)...); }
 #endif
-#ifdef DAHL_USE_PROFILE	//  Profile defines  //
+#if DAHL_USE_PROFILE == 1	//  Profile defines  //
 	// Resolve which function signature macro will be used. Note that this only
 	// is resolved when the (pre)compiler starts, so the syntax highlighting
 	// could mark the wrong one in your editor!
@@ -255,21 +265,21 @@ constexpr int daUndefined     = 16;	//	Undefined
 		#define DAHL_FUNC_SIG "Dr_FUNC_SIG unknown!"
 	#endif
 
-	#define daPROFILE_BEGIN_SESSION(name, filepath) ::DAHL::Profile::daInstrumentor::Get().BeginSession(name, filepath)
-	#define daPROFILE_END_SESSION() ::DAHL::Profile::daInstrumentor::Get().EndSession()
-	#define daPROFILE_SCOPE(name) constexpr auto fixedName = ::DAHL::Profile::daInstrumentorUtils::CleanupOutputString(name, "__cdecl ");\
+	#define dahlPROFILE_BEGIN_SESSION(name, filepath) ::DAHL::Profile::daInstrumentor::Get().BeginSession(name, filepath)
+	#define dahlPROFILE_END_SESSION() ::DAHL::Profile::daInstrumentor::Get().EndSession()
+	#define dahlPROFILE_SCOPE(name) constexpr auto fixedName = ::DAHL::Profile::daInstrumentorUtils::CleanupOutputString(name, "__cdecl ");\
 																			::DAHL::Profile::daInstrumentationTimer timer##__LINE__(fixedName.Data)
-	#define daPROFILE_FUNCTION() daPROFILE_SCOPE(DAHL_FUNC_SIG)
+	#define dahlPROFILE_FUNCTION() dahlPROFILE_SCOPE(DAHL_FUNC_SIG)
 
 #else	//	not using DAProfile - do nothing
-	#define daPROFILE_BEGIN_SESSION(name, filepath)
-	#define daPROFILE_END_SESSION()
-	#define daPROFILE_SCOPE(name)
-	#define daPROFILE_FUNCTION()
+	#define dahlPROFILE_BEGIN_SESSION(name, filepath)
+	#define dahlPROFILE_END_SESSION()
+	#define dahlPROFILE_SCOPE(name)
+	#define dahlPROFILE_FUNCTION()
 #endif
-#ifdef DAHL_USE_TIME	//  Time defines  //
-	#define daTimer          ::DAHL::Time::Timer
-	#define daTimestep       ::DAHL::Time::Timestep
+#if DAHL_USE_TIME == 1	//  Time defines  //
+	#define dahlTimer          ::DAHL::Time::Timer
+	#define dahlTimestep       ::DAHL::Time::Timestep
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -281,7 +291,7 @@ constexpr int daUndefined     = 16;	//	Undefined
 #include <string>
 #include <stdio.h>
 
-#ifdef DAHL_USE_PROFILE
+#if DAHL_USE_PROFILE == 1
 	#include <sstream>
 	#include <algorithm>
 	#include <chrono>
@@ -294,8 +304,12 @@ constexpr int daUndefined     = 16;	//	Undefined
 		#include <chrono>
 	#endif
 #endif
-#ifdef DAHL_USE_INPUT
+#if DAHL_USE_INPUT == 1
 	#include <ostream>
+#endif
+
+#if DAHL_USE_UUID == 1
+	#include <random>
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -386,7 +400,7 @@ namespace DAHL::Internal
 ////////////////////////////////////////////////////////////////////////////////
 //  --------------------------------  DALog  -------------------------------  //
 ////////////////////////////////////////////////////////////////////////////////
-#ifdef DAHL_USE_LOG
+#if DAHL_USE_LOG == 1
 		//	Enum Class for determining Log levels
 	enum class Level
 	{
@@ -412,7 +426,7 @@ namespace DAHL::Internal
 ////////////////////////////////////////////////////////////////////////////////
 //  -----------------------------  DAAssert  -------------------------------  //
 ////////////////////////////////////////////////////////////////////////////////
-#ifdef DAHL_USE_ASSERT
+#if DAHL_USE_ASSERT == 1
 	namespace DAHL
 	{
 		#ifdef DAHL_USE_LOG
@@ -427,7 +441,7 @@ namespace DAHL::Internal
 ////////////////////////////////////////////////////////////////////////////////
 //  ------------------------------  DAClear  -------------------------------  //
 ////////////////////////////////////////////////////////////////////////////////
-#ifdef DAHL_USE_CLEAR
+#if DAHL_USE_CLEAR == 1
 	namespace DAHL
 	{
 		void ClearScreen();
@@ -437,7 +451,7 @@ namespace DAHL::Internal
 ////////////////////////////////////////////////////////////////////////////////
 //  ------------------------------  DAPrint  -------------------------------  //
 ////////////////////////////////////////////////////////////////////////////////
-#ifdef DAHL_USE_PRINT
+#if DAHL_USE_PRINT == 1
 	namespace DAHL::Print
 	{
 		//	Print to screen
@@ -475,7 +489,7 @@ namespace DAHL::Internal
 ////////////////////////////////////////////////////////////////////////////////
 //  ------------------------------  DAInput  -------------------------------  //
 ////////////////////////////////////////////////////////////////////////////////
-#ifdef DAHL_USE_INPUT
+#if DAHL_USE_INPUT == 1
 	namespace DAHL::Input
 	{
 		//	Defines keycodes
@@ -1158,7 +1172,7 @@ namespace DAHL::Internal
 ////////////////////////////////////////////////////////////////////////////////
 //  -----------------------------  DAProfile  ------------------------------  //
 ////////////////////////////////////////////////////////////////////////////////
-#ifdef DAHL_USE_PROFILE
+#if DAHL_USE_PROFILE == 1
 	namespace DAHL::Profile
 	{
 		using daFloatingPointMicroseconds = std::chrono::duration<double, std::micro>;
@@ -1262,7 +1276,7 @@ namespace DAHL::Internal
 ////////////////////////////////////////////////////////////////////////////////
 //  -------------------------------  DATime  -------------------------------  //
 ////////////////////////////////////////////////////////////////////////////////
-#ifdef DAHL_USE_TIME
+#if DAHL_USE_TIME == 1
 	namespace DAHL::Time
 	{
 		class Timestep
@@ -1306,6 +1320,38 @@ namespace DAHL::Internal
 			std::chrono::time_point<std::chrono::high_resolution_clock> m_Start;
 		};
 	}	//	END namespace DAHL::Time
+#endif
+
+////////////////////////////////////////////////////////////////////////////////
+//  -------------------------------  DAUUID  -------------------------------  //
+////////////////////////////////////////////////////////////////////////////////
+#if DAHL_USE_UUID == 1
+	namespace DAHL
+	{
+		class UUID
+		{
+		public:
+			inline UUID();
+			inline UUID(uint64_t uuid);
+			inline UUID(const UUID& other);
+
+			inline operator uint64_t () { return m_UUID; }
+			inline operator const uint64_t() const { return m_UUID; }
+		private:
+			uint64_t m_UUID;
+		};
+	}
+	namespace std
+	{
+		template<>
+		struct hash<DAHL::UUID>
+		{
+			inline std::size_t operator()(const DAHL::UUID& uuid) const
+			{
+				return hash<uint64_t>()((uint64_t)uuid);
+			}
+		};
+	}
 #endif
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //                                                                                                           //
@@ -1431,7 +1477,6 @@ namespace DAHL::Internal
 	}
 	inline void DAHL::Internal::daShowCursor(bool enable)
 	{
-		daInit();
 		#ifdef DAHL_PLATFORM_WINDOWS
 			CONSOLE_CURSOR_INFO info;
 
@@ -1617,11 +1662,9 @@ namespace DAHL::Internal
 ////////////////////////////////////////////////////////////////////////////////
 //  --------------------------------  DALog  -------------------------------  //
 ////////////////////////////////////////////////////////////////////////////////
-#ifdef DAHL_USE_LOG
+#if DAHL_USE_LOG == 1
 	inline void DAHL::Log(Level severity, const char* message)
-	{
-		DAHL::Internal::daInit();
-		
+	{		
 		if (severity == Level::Critical)
 		{
 			DAHL::Internal::Set(fgRed, bgUndefined);
@@ -1667,7 +1710,7 @@ namespace DAHL::Internal
 ////////////////////////////////////////////////////////////////////////////////
 //  ------------------------------  DAClear  -------------------------------  //
 ////////////////////////////////////////////////////////////////////////////////
-#ifdef DAHL_USE_CLEAR
+#if DAHL_USE_CLEAR == 1
 	inline void DAHL::ClearScreen()
 	{
 		#ifdef DAHL_PLATFORM_WINDOWS
@@ -1681,7 +1724,7 @@ namespace DAHL::Internal
 ////////////////////////////////////////////////////////////////////////////////
 //  ------------------------------  DAPrint  -------------------------------  //
 ////////////////////////////////////////////////////////////////////////////////
-#ifdef DAHL_USE_PRINT
+#if DAHL_USE_PRINT == 1
 	//	Print to screen
 
 	inline int DAHL::Print::daGetFGvalue(FGColor fgColor)
@@ -1851,7 +1894,7 @@ namespace DAHL::Internal
 ////////////////////////////////////////////////////////////////////////////////
 //  ------------------------------  DAInput  -------------------------------  //
 ////////////////////////////////////////////////////////////////////////////////
-#ifdef DAHL_USE_INPUT
+#if DAHL_USE_INPUT == 1
 
 #endif	//	DAInput
 
@@ -1859,7 +1902,7 @@ namespace DAHL::Internal
 ////////////////////////////////////////////////////////////////////////////////
 //  -----------------------------  DAProfile  ------------------------------  //
 ////////////////////////////////////////////////////////////////////////////////
-#ifdef DAHL_USE_PROFILE
+#if DAHL_USE_PROFILE == 1
 
 		inline void DAHL::Profile::daInstrumentor::BeginSession(const std::string& name, const std::string& filepath)
 		{
@@ -1881,7 +1924,7 @@ namespace DAHL::Internal
 			}
 			else
 			{
-				daLOG_ERROR(" [DAProfile] Instrumentator could not open results file!");
+				dahlLOG_ERROR(" [DAProfile] Instrumentator could not open results file!");
 			}
 		}
 		inline void DAHL::Profile::daInstrumentor::EndSession()
@@ -1947,5 +1990,30 @@ namespace DAHL::Internal
 
 #endif	//	DAProfile
 
+////////////////////////////////////////////////////////////////////////////////
+//  -------------------------------  DAUUID  -------------------------------  //
+////////////////////////////////////////////////////////////////////////////////
+#if DAHL_USE_UUID == 1
+namespace DAHL
+{
+	static std::random_device s_RandomDevice;
+	static std::mt19937_64 eng(s_RandomDevice());
+	static std::uniform_int_distribution<uint64_t> s_UniformDistribution;
+
+	UUID::UUID()
+		: m_UUID(s_UniformDistribution(eng))
+	{}
+
+	UUID::UUID(uint64_t uuid)
+		: m_UUID(uuid)
+	{
+	}
+
+	UUID::UUID(const UUID& other)
+		: m_UUID(other.m_UUID)
+	{
+	}
+}
+#endif //	DAUUID
 
 #endif	//	DAHL #include guards
