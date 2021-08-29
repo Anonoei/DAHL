@@ -1,5 +1,5 @@
 # DAHL v0.4.3
-#### Devon Adams Helper Library
+#### DA Helper Library
 
 This header serves as a cross-platform library for various tasks, such as:
 
